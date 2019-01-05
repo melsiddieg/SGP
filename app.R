@@ -1,5 +1,6 @@
 
 source('global.R')
+library(rlang)
 
 ui <- fluidPage(
   theme = shinytheme("flatly"),
@@ -23,6 +24,7 @@ ui <- fluidPage(
       searchInput(
         inputId = "gene", 
         label = "Enter your search :", 
+        value="TET1",
         placeholder = "BRCA2", 
         btnSearch = icon("search"), 
         width = "100%"
@@ -64,8 +66,13 @@ server <- function(input, output, session){
     reset(input$more)
     reset(input$main_table_rows_selected)
     hide('tab3')
-    gene <- toupper(trimws(input$gene))
-    aug[HGNC==gene,] %>% head(100)
+    if(!is.null(input$gene)&nchar(input$gene)>0){
+      gene <- toupper(trimws(input$gene))
+      cat("your input gene is :", gene,"\n")
+      aug[HGNC==gene,] 
+    }
+    
+    
   })
   
   output$restxt <- renderText(
@@ -82,8 +89,8 @@ server <- function(input, output, session){
   
   output$main_table <- renderDataTable({
     sub <- res()
-    names(sub)[11:17] <- c('Arb_MAF', 'Nub_MAF','Eas_MAF','Wes_Maf','Sot_MAf','NE_MAF','SW_MAF')
-    sub[,1:17]
+    names(sub)[10:16] <- c('Arb_MAF', 'Nub_MAF','Eas_MAF','Wes_MAF','Sot_MAF','NE_MAF','SW_MAF')
+    sub[,1:16]
     },selection='single',extensions = 'Buttons',options = list( scrollX=TRUE,dom = 'Bfrtip', buttons =
                                               c('copy', 'csv', 'excel', 'pdf', 'print')))
   
@@ -103,9 +110,9 @@ server <- function(input, output, session){
     if(length(s)){
       sub <- res()
       pData <- sub[s,]
-      pData <- pData[,c(11:17)]
+      pData <- pData[,c(10:16)]
       pData
-      datatable(pData)%>% formatRound(c('Arb_MAF', 'Nub_MAF','Eas_MAF','Wes_Maf','Sot_MAf','NE_MAF','SW_MAF'),3)
+      datatable(pData)%>% formatRound(c('Arb_MAF', 'Nub_MAF','Eas_MAF','Wes_MAF','Sot_MAF','NE_MAF','SW_MAF'),3)
     }
     
   })
@@ -115,7 +122,7 @@ server <- function(input, output, session){
     sub <- res()
     if(length(s)){
       pData <- sub[s,]
-      pData <- pData[,c(11:17)]
+      pData <- pData[,c(10:16)]
       test <- as.data.frame(t(pData))
       Pop <- rownames(test)
       test <- cbind(test,Pop)
@@ -154,7 +161,7 @@ server <- function(input, output, session){
     })
     ## population frequencies
     output$pops <- renderDataTable({
-      if (!is.null(pops)){
+      if (!is.null(pops)&length(pops)>1){
         pops
       }else{
         data.frame(Message='No Results found')
@@ -163,7 +170,7 @@ server <- function(input, output, session){
     })
     ## clinvar
     output$clin <- renderDataTable({
-      if(!is.null(clinvar)){
+      if(!is.null(clinvar)&length(clinvar)>1){
         clinvar
       }else{
         data.frame(Message='No Results found')
