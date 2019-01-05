@@ -16,3 +16,4 @@ aug <- read_feather('/home/sieny/Omni/Done/SGP/Final.feather',columns = c(
 ))
 aug <- as.data.table(aug)
 setindexv(aug, c('Chr', 'Impact','HGNC','conseq','ENSEMBL','rs'))
+hugo <- fread('/home/sieny/Omni/Done/SGP/hugo_approved.tsv')

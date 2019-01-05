@@ -66,7 +66,7 @@ server <- function(input, output, session){
     reset(input$more)
     reset(input$main_table_rows_selected)
     hide('tab3')
-    if(!is.null(input$gene)&nchar(input$gene)>0){
+    if(!is.null(input$gene) ){
       gene <- toupper(trimws(input$gene))
       cat("your input gene is :", gene,"\n")
       aug[HGNC==gene,] 
@@ -76,8 +76,8 @@ server <- function(input, output, session){
   })
   
   output$restxt <- renderText(
-    if(nrow(res())==0){
-      "Query unsuccessful! No results found for your query"
+    if(!trimws(input$gene)%in%hugo$approved_symbol){
+      "Query unsuccessful! Make Sure you input a valid Hugo Symbol gene name"
     }else{
       "Query successful!"
       tags$hr()
@@ -88,17 +88,24 @@ server <- function(input, output, session){
     })
   
   output$main_table <- renderDataTable({
+    
     sub <- res()
-    names(sub)[10:16] <- c('Arb_MAF', 'Nub_MAF','Eas_MAF','Wes_MAF','Sot_MAF','NE_MAF','SW_MAF')
-    sub[,1:16]
+    #rint(nrow(sub))
+    if(nrow(sub)>0){
+      names(sub)[10:16] <- c('Arb_MAF', 'Nub_MAF','Eas_MAF','Wes_MAF','Sot_MAF','NE_MAF','SW_MAF')
+      sub[,1:16]
+    }
+    
     },selection='single',extensions = 'Buttons',options = list( scrollX=TRUE,dom = 'Bfrtip', buttons =
                                               c('copy', 'csv', 'excel', 'pdf', 'print')))
   
   output$plot1 <- renderHighchart({
-    pData <- res()
-    fData <- pData[,.N, by=.(conseq)]
-    hchart(fData, 'pie',hcaes(x='conseq', y='N',color='conseq')) %>% hc_title(text='Count of SNV BY Consequence Type')
-
+    if(nrow(res())>0){
+      pData <- res()
+      fData <- pData[,.N, by=.(conseq)]
+      hchart(fData, 'pie',hcaes(x='conseq', y='N',color='conseq')) %>% hc_title(text='Count of SNV BY Consequence Type')
+        }
+   
   })
   
   output$ctable <- renderDataTable({
