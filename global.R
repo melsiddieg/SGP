@@ -16,4 +16,6 @@ aug <- read_feather('/home/sieny/Omni/Done/SGP/Final.feather',columns = c(
 ))
 aug <- as.data.table(aug)
 setindexv(aug, c('Chr', 'Impact','HGNC','conseq','ENSEMBL','rs'))
-hugo <- fread('/home/sieny/Omni/Done/SGP/hugo_approved.tsv')
+# hugo <- fread('/home/sieny/Omni/Done/SGP/hugo_approved.tsv')
+genes <- unique(aug$HGNC)
+# genes <- sort(genes)

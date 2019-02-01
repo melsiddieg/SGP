@@ -2,6 +2,8 @@
 source('global.R')
 library(rlang)
 
+
+
 ui <- fluidPage(
   theme = shinytheme("flatly"),
   useShinyjs(),
@@ -22,14 +24,15 @@ ui <- fluidPage(
     ),
     mainPanel(
       searchInput(
-        inputId = "gene", 
-        label = "Enter your search :", 
-        value="TET1",
-        placeholder = "BRCA2", 
-        btnSearch = icon("search"), 
+        inputId = "gene",
+        label = "Enter your search :",
+        value='TET1',
+        placeholder = "BRCA2",
+        btnSearch = icon("search"),
         width = "100%"
       ),
-      
+      # selectizeInput('gene', label=NULL, choices=NULL, selected = 'TET1', multiple = FALSE,
+      #                options = list(placeholder = 'select a gene',maxOptions = 5)),
       
       # textInput('gene',label = h4(strong("Gene")),value = 'BRCA2',placeholder = 'BRCA2'),
       # actionButton(inputId = 'act', label = 'GO',class = "btn-primary"),
@@ -62,11 +65,14 @@ ui <- fluidPage(
 )
 
 server <- function(input, output, session){
+# genes <- getXref(object=cb, ids="BRC", resource="starts_with", param = cbp) %>% select(name)
+ # updateSelectizeInput(session, 'gene', choices = genes, server = TRUE)
   res <- eventReactive(input$gene,{
+    cat("input is: ",str(input$gene),"\n")
     reset(input$more)
     reset(input$main_table_rows_selected)
     hide('tab3')
-    if(!is.null(input$gene) ){
+    if(nchar(input$gene)>0 ){
       gene <- toupper(trimws(input$gene))
       cat("your input gene is :", gene,"\n")
       aug[HGNC==gene,] 
@@ -76,8 +82,8 @@ server <- function(input, output, session){
   })
   
   output$restxt <- renderText(
-    if(!trimws(input$gene)%in%hugo$approved_symbol){
-      "Query unsuccessful! Make Sure you input a valid Hugo Symbol gene name"
+    if(!toupper(trimws(input$gene))%in%genes){
+      "Query unsuccessful! Either your query was not found,\n or you did not input a valid Hugo Symbol gene name"
     }else{
       "Query successful!"
       tags$hr()
@@ -92,12 +98,12 @@ server <- function(input, output, session){
     sub <- res()
     #rint(nrow(sub))
     if(nrow(sub)>0){
-      names(sub)[10:16] <- c('Arb_MAF', 'Nub_MAF','Eas_MAF','Wes_MAF','Sot_MAF','NE_MAF','SW_MAF')
+      # names(sub)[10:16] <- c('Arb_MAF', 'Nub_MAF','Eas_MAF','Wes_MAF','Sot_MAF','NE_MAF','SW_MAF')
       sub[,1:16]
     }
     
-    },selection='single',extensions = 'Buttons',options = list( scrollX=TRUE,dom = 'Bfrtip', buttons =
-                                              c('copy', 'csv', 'excel', 'pdf', 'print')))
+    },selection='single',extensions = 'Buttons',options = list( scrollX=TRUE,scrollY=TRUE,dom = 'Bfrtip', buttons =
+                                              c('copy', 'csv', 'excel', 'print')))
   
   output$plot1 <- renderHighchart({
     if(nrow(res())>0){
@@ -162,14 +168,19 @@ server <- function(input, output, session){
     # scores <- conseq$proteinVariantAnnotation$substitutionScores[[3]]
     ## consequence types
     output$conseq <- renderDataTable({
-      cons <- conseq %>% select(1:5,transcriptAnnotationFlags,sequenceOntologyTerms) %>% 
-        unnest(sequenceOntologyTerms)
-      cons
+      if(!is.null(conseq)&length(conseq)>1){
+        cons <- conseq %>% select(1:5,transcriptAnnotationFlags,sequenceOntologyTerms) %>% 
+          unnest(sequenceOntologyTerms)
+        N <- nrow(cons)-1
+        cons[1:N,c(1:5,7,8)]
+      }
+      
+      
     })
     ## population frequencies
     output$pops <- renderDataTable({
       if (!is.null(pops)&length(pops)>1){
-        pops
+        pops[,c(1:2,5:9)]
       }else{
         data.frame(Message='No Results found')
       }
