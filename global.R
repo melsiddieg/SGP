@@ -10,11 +10,12 @@ library(shinyjs)
 library(cellbaseR)
 library(shinyWidgets)
 cb <- CellBaseR()
-aug <- read_feather('/home/sieny/Omni/Done/SGP/Final.feather',columns = c(
-  'rs', 'Chr', 'Start', 'REF', 'ALT', 'conseq', 'Impact', 'HGNC',
-  'ENSEMBL', 'Arb_MAF', 'Nub_MAF','Eas_MAF','Wes_MAF','Sot_MAF','NE_MAF','SW_MAF'
-))
-aug <- as.data.table(aug)
+# aug <- read_feather('/home/sieny/Omni/Done/SGP/Final.feather',columns = c(
+#   'rs', 'Chr', 'Start', 'REF', 'ALT', 'conseq', 'Impact', 'HGNC',
+#   'ENSEMBL', 'Arb_MAF', 'Nub_MAF','Eas_MAF','Wes_MAF','Sot_MAF','NE_MAF','SW_MAF'
+# # ))
+# aug <- as.data.table(aug)
+aug <- fread('test.tsv')
 setindexv(aug, c('Chr', 'Impact','HGNC','conseq','ENSEMBL','rs'))
 # hugo <- fread('/home/sieny/Omni/Done/SGP/hugo_approved.tsv')
 genes <- unique(aug$HGNC)
